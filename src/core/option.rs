@@ -1,4 +1,5 @@
 use std::borrow::Cow;
+use std::fmt;
 
 pub struct ModeOption<'a> {
     /// Update the prompt text.
@@ -31,18 +32,8 @@ impl<'a> Default for ModeOption<'a> {
     }
 }
 
-impl<'a> ModeOption<'a> {
-    pub fn is_empty(&self) -> bool {
-        self.prompt.is_none()
-            && self.message.is_none()
-            && self.markup_rows.is_none()
-            && self.no_custom.is_none()
-            && self.urgent.is_none()
-            && self.active.is_none()
-            && self.delim.is_none()
-    }
-
-    pub fn to_string(&self) -> String {
+impl<'a> fmt::Display for ModeOption<'a> {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let mut output = String::new();
 
         if let Some(prompt) = &self.prompt {
@@ -74,7 +65,19 @@ impl<'a> ModeOption<'a> {
         };
 
         output.push('\n');
-        output
+        write!(f, "{}", output)
+    }
+}
+
+impl<'a> ModeOption<'a> {
+    pub fn is_empty(&self) -> bool {
+        self.prompt.is_none()
+            && self.message.is_none()
+            && self.markup_rows.is_none()
+            && self.no_custom.is_none()
+            && self.urgent.is_none()
+            && self.active.is_none()
+            && self.delim.is_none()
     }
 
     pub fn set_prompt<T: Into<Cow<'a, str>>>(&mut self, prompt: T) -> &Self {
@@ -124,21 +127,12 @@ pub struct RowOption<'a> {
     non_selectable: Option<bool>,
 }
 
-impl<'a> RowOption<'a> {
-    pub fn new<T: Into<Cow<'a, str>>>(text: T) -> Self {
-        Self {
-            text: text.into(),
-            icon: None,
-            meta: None,
-            non_selectable: None,
-        }
-    }
-
-    pub fn to_string(&self) -> String {
+impl<'a> fmt::Display for RowOption<'a> {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         // Due to limitations of rofi script mode, each row can have only one option.
         // This may change in future APIs
 
-        if let Some(icon) = &self.icon {
+        let output = if let Some(icon) = &self.icon {
             option_line(Some(self.text.as_ref()), "icon", icon)
         } else if let Some(meta) = &self.meta {
             option_line(Some(self.text.as_ref()), "meta", meta)
@@ -150,6 +144,19 @@ impl<'a> RowOption<'a> {
             )
         } else {
             format!("{}\n", self.text.as_ref())
+        };
+
+        write!(f, "{}", output)
+    }
+}
+
+impl<'a> RowOption<'a> {
+    pub fn new<T: Into<Cow<'a, str>>>(text: T) -> Self {
+        Self {
+            text: text.into(),
+            icon: None,
+            meta: None,
+            non_selectable: None,
         }
     }
 

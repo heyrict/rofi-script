@@ -1,3 +1,5 @@
+use std::fmt;
+
 pub mod core;
 
 pub use crate::core::{
@@ -8,6 +10,12 @@ pub use crate::core::{
 /// All environment variables provided by rofi
 pub struct RofiEnv {
     pub rofi_retv: Option<Retv>,
+}
+
+impl Default for RofiEnv {
+    fn default() -> RofiEnv {
+        RofiEnv { rofi_retv: None }
+    }
 }
 
 impl RofiEnv {
@@ -27,13 +35,22 @@ pub struct RofiContext {
     pub input: String,
 }
 
+impl Default for RofiContext {
+    fn default() -> RofiContext {
+        RofiContext {
+            env: RofiEnv::default(),
+            input: String::new(),
+        }
+    }
+}
+
 impl RofiContext {
     /// Load rofi context
     pub fn new() -> Self {
         let env = RofiEnv::new();
 
         let args = std::env::args();
-        let args: Vec<_> = args.into_iter().skip(1).collect();
+        let args: Vec<_> = args.skip(1).collect();
         let input = args.join(" ");
 
         RofiContext { env, input }
@@ -46,8 +63,8 @@ pub struct RofiMessage<'a> {
     pub row: Vec<RowOption<'a>>,
 }
 
-impl<'a> RofiMessage<'a> {
-    pub fn to_string(&self) -> String {
+impl<'a> fmt::Display for RofiMessage<'a> {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let mut output = String::new();
 
         // Add options to the beginning
@@ -60,6 +77,6 @@ impl<'a> RofiMessage<'a> {
             output.push_str(&row_option.to_string());
         }
 
-        output
+        write!(f, "{}", output)
     }
 }
